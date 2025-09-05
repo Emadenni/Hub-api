@@ -1,0 +1,35 @@
+{
+  "name": "hub-api",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000h\u0000u\u0000b\u0000-\u0000a\u0000p\u0000i\u0000 \u0000b\u0000a\u0000c\u0000k\u0000e\u0000n\u0000d\u0000\r\u0000 \u0000",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Emadenni/Hub-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Emadenni/Hub-api/issues"
+  },
+  "homepage": "https://github.com/Emadenni/Hub-api#readme",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.883.0",
+    "@aws-sdk/client-dynamodb": "^3.883.0",
+    "@aws-sdk/lib-dynamodb": "^3.883.0",
+    "dotenv": "^17.2.2",
+    "uuid": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.152",
+    "@types/node": "^24.3.1",
+    "esbuild": "^0.25.9",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-esbuild": "^1.55.1",
+    "typescript": "^5.9.2"
+  }
+}

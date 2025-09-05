@@ -1,0 +1,42 @@
+service: hub-api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-central-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
+        - dynamodb:UpdateItem
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource:
+        - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_sessions
+        - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_codes
+        - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_users
+
+plugins:
+  - serverless-esbuild
+  - serverless-dotenv-plugin
+
+custom:
+  dotenv:
+    exclude:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION
+
+functions:
+  createSession:
+    handler: src/handlers/auth/session.handler
+    events:
+      - httpApi:
+          path: /auth/session
+          method: post
+
+resources:
+  Resources: {}
