@@ -1,5 +1,5 @@
 service: hub-api
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 provider:
   name: aws
@@ -37,6 +37,21 @@ functions:
       - httpApi:
           path: /auth/session
           method: post
+
+  profile:
+    handler: src/handlers/auth/profile.handler
+    events:
+      - httpApi:
+          path: /auth/profile
+          method: get
+
+  postConfirmation:
+    handler: src/handlers/auth/postConfirmation.handler
+    events:
+      - cognitoUserPool:
+          pool: eu-central-1_2aEk8Onki
+          trigger: PostConfirmation
+          existing: true   
 
 resources:
   Resources: {}
