@@ -8,6 +8,10 @@
       "name": "aws",
       "runtime": "nodejs20.x",
       "region": "eu-central-1",
+      "environment": {
+        "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
+        "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+      },
       "iamRoleStatements": [
         {
           "Effect": "Allow",
@@ -28,7 +32,6 @@
       ],
       "stage": "dev",
       "versionFunctions": true,
-      "environment": {},
       "compiledCloudFormationTemplate": {
         "AWSTemplateFormatVersion": "2010-09-09",
         "Description": "The AWS CloudFormation template for this Serverless application",
@@ -106,6 +109,24 @@
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
               "LogGroupName": "/aws/lambda/hub-api-dev-createSession"
+            }
+          },
+          "ProfileLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hub-api-dev-profile"
+            }
+          },
+          "MeLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hub-api-dev-me"
+            }
+          },
+          "PostConfirmationLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hub-api-dev-postConfirmation"
             }
           },
           "IamRoleLambdaExecution": {
@@ -196,7 +217,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/hub-api/dev/1757106830875-2025-09-05T21:13:50.875Z/hub-api.zip"
+                "S3Key": "serverless/hub-api/dev/1757350476772-2025-09-08T16:54:36.772Z/hub-api.zip"
               },
               "Handler": "src/handlers/auth/session.handler",
               "Runtime": "nodejs20.x",
@@ -204,7 +225,10 @@
               "MemorySize": 1024,
               "Timeout": 6,
               "Environment": {
-                "Variables": {}
+                "Variables": {
+                  "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                }
               },
               "Role": {
                 "Fn::GetAtt": [
@@ -217,15 +241,254 @@
               "CreateSessionLogGroup"
             ]
           },
-          "CreateSessionLambdaVersionAPlN1ZYFgTWQ5Izd7a5WV2l80gI5YCnaVRdy7Iynwo": {
+          "ProfileLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/hub-api/dev/1757350476772-2025-09-08T16:54:36.772Z/hub-api.zip"
+              },
+              "Handler": "src/handlers/auth/profile.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "hub-api-dev-profile",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ProfileLogGroup"
+            ]
+          },
+          "MeLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/hub-api/dev/1757350476772-2025-09-08T16:54:36.772Z/hub-api.zip"
+              },
+              "Handler": "src/handlers/auth/me.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "hub-api-dev-me",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "MeLogGroup"
+            ]
+          },
+          "PostConfirmationLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/hub-api/dev/1757350476772-2025-09-08T16:54:36.772Z/hub-api.zip"
+              },
+              "Handler": "src/handlers/auth/postConfirmation.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "hub-api-dev-postConfirmation",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "PostConfirmationLogGroup"
+            ]
+          },
+          "CreateSessionLambdaVersion6PuThIxzcA5VPmu0gbgxgJvhNxeAYEhAwTTgXp3JnWk": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "CreateSessionLambdaFunction"
               },
-              "CodeSha256": "DxddBHnSCPdic+NatalK4ZAuuKhvZAaTP/oMOw2Evz4="
+              "CodeSha256": "FLmbi7m/VEYeBC19PJVFnLYYpUt7LjbUXs1sOKY5lPU="
             }
+          },
+          "ProfileLambdaVersionrBSc6RzNT2lRjtbDkrTJiI3U0dGFWRVOmWPswfdSdi8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ProfileLambdaFunction"
+              },
+              "CodeSha256": "FLmbi7m/VEYeBC19PJVFnLYYpUt7LjbUXs1sOKY5lPU="
+            }
+          },
+          "MeLambdaVersionnpMBUaq3woo4CR1wDyYRZ80nRqHbCmfzw3qqGNI": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "MeLambdaFunction"
+              },
+              "CodeSha256": "FLmbi7m/VEYeBC19PJVFnLYYpUt7LjbUXs1sOKY5lPU="
+            }
+          },
+          "PostConfirmationLambdaVersionEEQnBb7rVUKL9moO2CsDjdG6XESdIOyhCrKxNE2aiDc": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "PostConfirmationLambdaFunction"
+              },
+              "CodeSha256": "FLmbi7m/VEYeBC19PJVFnLYYpUt7LjbUXs1sOKY5lPU="
+            }
+          },
+          "PostConfirmationCustomCognitoUserPool1": {
+            "Type": "Custom::CognitoUserPool",
+            "Version": 1,
+            "DependsOn": [
+              "PostConfirmationLambdaFunction",
+              "CustomDashresourceDashexistingDashcupLambdaFunction"
+            ],
+            "Properties": {
+              "ServiceToken": {
+                "Fn::GetAtt": [
+                  "CustomDashresourceDashexistingDashcupLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "FunctionName": "hub-api-dev-postConfirmation",
+              "UserPoolName": "eu-central-1_2aEk8Onki",
+              "UserPoolConfigs": [
+                {
+                  "Trigger": "PostConfirmation"
+                }
+              ]
+            }
+          },
+          "IamRoleCustomResourcesLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "dev",
+                        "hub-api",
+                        "custom-resources-lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Resource": "*",
+                        "Action": [
+                          "cognito-idp:ListUserPools",
+                          "cognito-idp:DescribeUserPool",
+                          "cognito-idp:UpdateUserPool"
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Resource": {
+                          "Fn::Sub": "arn:${AWS::Partition}:lambda:*:*:function:hub-api-dev-postConfirmation"
+                        },
+                        "Action": [
+                          "lambda:AddPermission",
+                          "lambda:RemovePermission"
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Resource": {
+                          "Fn::Sub": "arn:${AWS::Partition}:iam::*:role/*"
+                        },
+                        "Action": [
+                          "iam:PassRole"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "CustomDashresourceDashexistingDashcupLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/hub-api/dev/1757350476772-2025-09-08T16:54:36.772Z/custom-resources.zip"
+              },
+              "FunctionName": "hub-api-dev-custom-resource-existing-cup",
+              "Handler": "cognito-user-pool/handler.handler",
+              "MemorySize": 1024,
+              "Runtime": "nodejs18.x",
+              "Timeout": 180,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleCustomResourcesLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "IamRoleCustomResourcesLambdaExecution"
+            ]
           },
           "HttpApi": {
             "Type": "AWS::ApiGatewayV2::Api",
@@ -318,6 +581,150 @@
               }
             },
             "DependsOn": "HttpApiIntegrationCreateSession"
+          },
+          "ProfileLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ProfileLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationProfile": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ProfileLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetAuthProfile": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /auth/profile",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationProfile"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationProfile"
+          },
+          "MeLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "MeLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationMe": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"MeLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetAuthMe": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /auth/me",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationMe"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationMe"
           }
         },
         "Outputs": {
@@ -332,10 +739,37 @@
           "CreateSessionLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "CreateSessionLambdaVersionAPlN1ZYFgTWQ5Izd7a5WV2l80gI5YCnaVRdy7Iynwo"
+              "Ref": "CreateSessionLambdaVersion6PuThIxzcA5VPmu0gbgxgJvhNxeAYEhAwTTgXp3JnWk"
             },
             "Export": {
               "Name": "sls-hub-api-dev-CreateSessionLambdaFunctionQualifiedArn"
+            }
+          },
+          "ProfileLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ProfileLambdaVersionrBSc6RzNT2lRjtbDkrTJiI3U0dGFWRVOmWPswfdSdi8"
+            },
+            "Export": {
+              "Name": "sls-hub-api-dev-ProfileLambdaFunctionQualifiedArn"
+            }
+          },
+          "MeLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "MeLambdaVersionnpMBUaq3woo4CR1wDyYRZ80nRqHbCmfzw3qqGNI"
+            },
+            "Export": {
+              "Name": "sls-hub-api-dev-MeLambdaFunctionQualifiedArn"
+            }
+          },
+          "PostConfirmationLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "PostConfirmationLambdaVersionEEQnBb7rVUKL9moO2CsDjdG6XESdIOyhCrKxNE2aiDc"
+            },
+            "Export": {
+              "Name": "sls-hub-api-dev-PostConfirmationLambdaFunctionQualifiedArn"
             }
           },
           "HttpApiId": {
@@ -491,7 +925,66 @@
         "timeout": 6,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "CreateSessionLambdaVersionAPlN1ZYFgTWQ5Izd7a5WV2l80gI5YCnaVRdy7Iynwo"
+        "versionLogicalId": "CreateSessionLambdaVersion6PuThIxzcA5VPmu0gbgxgJvhNxeAYEhAwTTgXp3JnWk"
+      },
+      "profile": {
+        "handler": "src/handlers/auth/profile.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/auth/profile",
+              "method": "get"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/auth/profile"
+          }
+        ],
+        "name": "hub-api-dev-profile",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs20.x",
+        "vpc": {},
+        "versionLogicalId": "ProfileLambdaVersionrBSc6RzNT2lRjtbDkrTJiI3U0dGFWRVOmWPswfdSdi8"
+      },
+      "me": {
+        "handler": "src/handlers/auth/me.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/auth/me",
+              "method": "get"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/auth/me"
+          }
+        ],
+        "name": "hub-api-dev-me",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs20.x",
+        "vpc": {},
+        "versionLogicalId": "MeLambdaVersionnpMBUaq3woo4CR1wDyYRZ80nRqHbCmfzw3qqGNI"
+      },
+      "postConfirmation": {
+        "handler": "src/handlers/auth/postConfirmation.handler",
+        "events": [
+          {
+            "cognitoUserPool": {
+              "pool": "eu-central-1_2aEk8Onki",
+              "trigger": "PostConfirmation",
+              "existing": true
+            }
+          }
+        ],
+        "name": "hub-api-dev-postConfirmation",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs20.x",
+        "vpc": {},
+        "versionLogicalId": "PostConfirmationLambdaVersionEEQnBb7rVUKL9moO2CsDjdG6XESdIOyhCrKxNE2aiDc"
       }
     },
     "resources": {
@@ -523,7 +1016,7 @@
     "isDashboardMonitoringPreconfigured": false
   },
   "package": {
-    "artifactDirectoryName": "serverless/hub-api/dev/1757106830875-2025-09-05T21:13:50.875Z",
+    "artifactDirectoryName": "serverless/hub-api/dev/1757350476772-2025-09-08T16:54:36.772Z",
     "artifact": "hub-api.zip"
   }
 }

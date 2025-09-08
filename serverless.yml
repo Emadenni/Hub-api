@@ -5,6 +5,9 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: eu-central-1
+  environment:
+    COGNITO_USER_POOL_ID: eu-central-1_2aEk8Onki
+    COGNITO_APP_CLIENT_ID: heajnhd40jrihjlv70k3m6o8u
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -45,13 +48,20 @@ functions:
           path: /auth/profile
           method: get
 
+  me:
+    handler: src/handlers/auth/me.handler
+    events:
+      - httpApi:
+          path: /auth/me
+          method: get
+
   postConfirmation:
     handler: src/handlers/auth/postConfirmation.handler
     events:
       - cognitoUserPool:
           pool: eu-central-1_2aEk8Onki
           trigger: PostConfirmation
-          existing: true   
+          existing: true
 
 resources:
   Resources: {}

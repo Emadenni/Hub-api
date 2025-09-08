@@ -1,7 +1,6 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { db } from "../../lib/db";
-import { noContentResponse, jsonResponse } from "../../lib/response";
 import { v4 as uuidv4 } from "uuid";
 
 export const handler: APIGatewayProxyHandler = async (event) => {
@@ -9,7 +8,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const body = event.body ? JSON.parse(event.body) : null;
 
     if (!body?.refreshToken) {
-      return jsonResponse(400, { error: "refreshToken required" });
+      return { statusCode: 400, body: JSON.stringify({ error: "refreshToken required" }) };
     }
 
     const sessionId = uuidv4();
@@ -29,12 +28,12 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     return {
       statusCode: 204,
       headers: {
-        "Set-Cookie": `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax`,
+        "Set-Cookie": `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None`,
       },
       body: "",
     };
   } catch (err) {
     console.error("Errore /auth/session:", err);
-    return jsonResponse(500, { error: "Internal Server Error" });
+    return { statusCode: 500, body: JSON.stringify({ error: "Internal Server Error" }) };
   }
 };
