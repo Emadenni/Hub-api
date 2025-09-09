@@ -1,9 +1,9 @@
-import { APIGatewayProxyHandler } from "aws-lambda";
+import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { db } from "../../lib/db";
 import { v4 as uuidv4 } from "uuid";
 
-export const handler: APIGatewayProxyHandler = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     const body = event.body ? JSON.parse(event.body) : null;
 
@@ -27,10 +27,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     return {
       statusCode: 204,
-      headers: {
-        "Set-Cookie": `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None`,
-      },
-      body: "",
+      cookies: [
+        `sessionId=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None`,
+      ],
     };
   } catch (err) {
     console.error("Errore /auth/session:", err);

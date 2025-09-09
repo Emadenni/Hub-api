@@ -22,6 +22,21 @@ provider:
         - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_codes
         - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_users
 
+  httpApi:
+    cors:
+      allowedOrigins:
+        - http://localhost:5173
+        - https://dev.d3idv4br2ibj8m.amplifyapp.com
+        - https://dev.d1xuz6wpo1v9ag.amplifyapp.com
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - OPTIONS
+      allowCredentials: true
+
 plugins:
   - serverless-esbuild
   - serverless-dotenv-plugin
