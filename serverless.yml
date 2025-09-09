@@ -70,6 +70,13 @@ functions:
           path: /auth/me
           method: get
 
+  logout:
+    handler: src/handlers/auth/logout.handler
+    events:
+      - httpApi:
+          path: /auth/logout
+          method: post
+
   postConfirmation:
     handler: src/handlers/auth/postConfirmation.handler
     events:
