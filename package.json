@@ -22,10 +22,14 @@
     "@aws-sdk/client-dynamodb": "^3.883.0",
     "@aws-sdk/lib-dynamodb": "^3.883.0",
     "dotenv": "^17.2.2",
+    "jsonwebtoken": "^9.0.2",
+    "jwk-to-pem": "^2.0.7",
     "uuid": "^12.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/jwk-to-pem": "^2.0.3",
     "@types/node": "^24.3.1",
     "esbuild": "^0.25.9",
     "serverless-dotenv-plugin": "^6.0.0",

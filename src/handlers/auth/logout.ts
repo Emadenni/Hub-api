@@ -1,40 +1,18 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DeleteCommand } from "@aws-sdk/lib-dynamodb";
 
-const db = new DynamoDBClient({ region: process.env.AWS_REGION });
-
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
+export const handler: APIGatewayProxyHandlerV2 = async () => {
   try {
-    // 1) Leggi il cookie sessionId
-    const cookies = event.cookies || [];
-    const sessionCookie = cookies.find((c) => c.startsWith("sessionId="));
-
-    if (sessionCookie) {
-      const sessionId = sessionCookie.split("=")[1];
-
-      // 2) Cancella la sessione da DynamoDB
-      await db.send(
-        new DeleteCommand({
-          TableName: "hub_sessions",
-          Key: { sessionId },
-        })
-      );
-    }
-
-    // 3) Invalida il cookie lato client
+    // Ora non c’è più nulla da cancellare sul backend
+    // Basta dire al client di eliminare il sessionToken da localStorage
     return {
       statusCode: 200,
-      cookies: [
-        "sessionId=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0",
-      ],
-      body: JSON.stringify({ success: true }),
+      body: JSON.stringify({ success: true, message: "Logged out" }),
     };
-  } catch (err) {
-    console.error("❌ Errore /auth/logout:", err);
+  } catch (err: any) {
+    console.error("❌ Errore /auth/logout:", err.message || err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error" }),
+      body: JSON.stringify({ error: "Internal Server Error", details: err.message }),
     };
   }
 };

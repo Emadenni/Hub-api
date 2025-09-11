@@ -1,52 +1,45 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { CognitoIdentityProviderClient, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
+import jwt from "jsonwebtoken";
 
-const db = new DynamoDBClient({ region: process.env.AWS_REGION });
 const cognito = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 const clientId = process.env.COGNITO_APP_CLIENT_ID!;
+const jwtSecret = process.env.JWT_SECRET!;
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
-    console.log("Event cookies:", event.cookies);
     console.log("Event headers:", event.headers);
 
-    const cookies = event.cookies || [];
-    const sessionCookie = cookies.find((c) => c.startsWith("sessionId="));
-    if (!sessionCookie) {
-      return { statusCode: 401, body: JSON.stringify({ error: "Missing sessionId cookie" }) };
+    // 1️⃣ Legge Authorization header
+    const authHeader = event.headers?.authorization || event.headers?.Authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return { statusCode: 401, body: JSON.stringify({ error: "Missing Authorization header" }) };
     }
 
-    const sessionId = sessionCookie.split("=")[1];
-    console.log("SessionId:", sessionId);
+    const token = authHeader.substring("Bearer ".length);
 
-    // Recupera la refreshToken da hub_sessions
-    const res = await db.send(
-      new GetCommand({
-        TableName: "hub_sessions",
-        Key: { sessionId }, // 👈 qui lib-dynamodb fa già il marshalling
-      })
-    );
-
-    console.log("DynamoDB result:", res);
-
-    if (!res.Item?.refreshToken) {
-      return { statusCode: 401, body: JSON.stringify({ error: "Invalid session" }) };
+    // 2️⃣ Verifica il JWT
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, jwtSecret);
+    } catch (err) {
+      console.error("Invalid JWT:", err);
+      return { statusCode: 401, body: JSON.stringify({ error: "Invalid or expired session" }) };
     }
 
-    // Scambia refreshToken con nuovi token
+    const refreshToken = decoded.refreshToken;
+    if (!refreshToken) {
+      return { statusCode: 401, body: JSON.stringify({ error: "No refreshToken in session" }) };
+    }
+
+    // 3️⃣ Usa il refreshToken per prendere nuovi token da Cognito
     const authRes = await cognito.send(
       new InitiateAuthCommand({
         AuthFlow: "REFRESH_TOKEN_AUTH",
         ClientId: clientId,
-        AuthParameters: {
-          REFRESH_TOKEN: res.Item.refreshToken,
-        },
+        AuthParameters: { REFRESH_TOKEN: refreshToken },
       })
     );
-
-    console.log("Cognito authRes:", authRes);
 
     const idToken = authRes.AuthenticationResult?.IdToken;
     const accessToken = authRes.AuthenticationResult?.AccessToken;
@@ -55,6 +48,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return { statusCode: 401, body: JSON.stringify({ error: "Unable to refresh tokens" }) };
     }
 
+    // 4️⃣ Risposta allo store
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -64,6 +58,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     };
   } catch (err: any) {
     console.error("Errore /auth/me:", err.message || err);
-    return { statusCode: 500, body: JSON.stringify({ error: "Internal Server Error", details: err.message }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Internal Server Error", details: err.message }),
+    };
   }
 };

@@ -8,6 +8,7 @@ provider:
   environment:
     COGNITO_USER_POOL_ID: eu-central-1_2aEk8Onki
     COGNITO_APP_CLIENT_ID: heajnhd40jrihjlv70k3m6o8u
+    JWT_SECRET: ${env:JWT_SECRET} # sarà letto dal file .env
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -43,6 +44,7 @@ plugins:
 
 custom:
   dotenv:
+    path: .env   # 👈 forza il caricamento del file .env nella root
     exclude:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -54,6 +56,13 @@ functions:
     events:
       - httpApi:
           path: /auth/session
+          method: post
+
+  exchange:
+    handler: src/handlers/auth/exchange.handler
+    events:
+      - httpApi:
+          path: /auth/exchange
           method: post
 
   profile:

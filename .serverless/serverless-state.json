@@ -10,7 +10,8 @@
       "region": "eu-central-1",
       "environment": {
         "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
-        "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+        "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u",
+        "JWT_SECRET": "secretwindow_1986_key__ss123"
       },
       "iamRoleStatements": [
         {
@@ -130,6 +131,12 @@
               "LogGroupName": "/aws/lambda/hub-api-dev-createSession"
             }
           },
+          "ExchangeLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hub-api-dev-exchange"
+            }
+          },
           "ProfileLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
@@ -242,7 +249,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/hub-api/dev/1757413922051-2025-09-09T10:32:02.051Z/hub-api.zip"
+                "S3Key": "serverless/hub-api/dev/1757450276264-2025-09-09T20:37:56.264Z/hub-api.zip"
               },
               "Handler": "src/handlers/auth/session.handler",
               "Runtime": "nodejs20.x",
@@ -252,7 +259,8 @@
               "Environment": {
                 "Variables": {
                   "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
-                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u",
+                  "JWT_SECRET": "secretwindow_1986_key__ss123"
                 }
               },
               "Role": {
@@ -266,6 +274,38 @@
               "CreateSessionLogGroup"
             ]
           },
+          "ExchangeLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/hub-api/dev/1757450276264-2025-09-09T20:37:56.264Z/hub-api.zip"
+              },
+              "Handler": "src/handlers/auth/exchange.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "hub-api-dev-exchange",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u",
+                  "JWT_SECRET": "secretwindow_1986_key__ss123"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ExchangeLogGroup"
+            ]
+          },
           "ProfileLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -273,7 +313,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/hub-api/dev/1757413922051-2025-09-09T10:32:02.051Z/hub-api.zip"
+                "S3Key": "serverless/hub-api/dev/1757450276264-2025-09-09T20:37:56.264Z/hub-api.zip"
               },
               "Handler": "src/handlers/auth/profile.handler",
               "Runtime": "nodejs20.x",
@@ -283,7 +323,8 @@
               "Environment": {
                 "Variables": {
                   "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
-                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u",
+                  "JWT_SECRET": "secretwindow_1986_key__ss123"
                 }
               },
               "Role": {
@@ -304,7 +345,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/hub-api/dev/1757413922051-2025-09-09T10:32:02.051Z/hub-api.zip"
+                "S3Key": "serverless/hub-api/dev/1757450276264-2025-09-09T20:37:56.264Z/hub-api.zip"
               },
               "Handler": "src/handlers/auth/me.handler",
               "Runtime": "nodejs20.x",
@@ -314,7 +355,8 @@
               "Environment": {
                 "Variables": {
                   "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
-                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u",
+                  "JWT_SECRET": "secretwindow_1986_key__ss123"
                 }
               },
               "Role": {
@@ -335,7 +377,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/hub-api/dev/1757413922051-2025-09-09T10:32:02.051Z/hub-api.zip"
+                "S3Key": "serverless/hub-api/dev/1757450276264-2025-09-09T20:37:56.264Z/hub-api.zip"
               },
               "Handler": "src/handlers/auth/logout.handler",
               "Runtime": "nodejs20.x",
@@ -345,7 +387,8 @@
               "Environment": {
                 "Variables": {
                   "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
-                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u",
+                  "JWT_SECRET": "secretwindow_1986_key__ss123"
                 }
               },
               "Role": {
@@ -366,7 +409,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/hub-api/dev/1757413922051-2025-09-09T10:32:02.051Z/hub-api.zip"
+                "S3Key": "serverless/hub-api/dev/1757450276264-2025-09-09T20:37:56.264Z/hub-api.zip"
               },
               "Handler": "src/handlers/auth/postConfirmation.handler",
               "Runtime": "nodejs20.x",
@@ -376,7 +419,8 @@
               "Environment": {
                 "Variables": {
                   "COGNITO_USER_POOL_ID": "eu-central-1_2aEk8Onki",
-                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u"
+                  "COGNITO_APP_CLIENT_ID": "heajnhd40jrihjlv70k3m6o8u",
+                  "JWT_SECRET": "secretwindow_1986_key__ss123"
                 }
               },
               "Role": {
@@ -390,54 +434,64 @@
               "PostConfirmationLogGroup"
             ]
           },
-          "CreateSessionLambdaVersion5I7B7hfvMoRbRw7BS9ucSCGJbBPfHdSK8k6JXuCI": {
+          "CreateSessionLambdaVersionRiIKwmHfxisQyoFseK0NLzgQR5gZ6BHZDKsklEOE": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "CreateSessionLambdaFunction"
               },
-              "CodeSha256": "+umu3SLE+UhN7lhEt+/afEsSRK5zvPWtNCD/PiRE3p4="
+              "CodeSha256": "sO1PI4zQABmWE09IALOwVexD9S+bLNtPkb9r45XlDT8="
             }
           },
-          "ProfileLambdaVersionSb8KJ8jJugQiwg2c6R376FzTGgp3scGUFZZSVARiE": {
+          "ExchangeLambdaVersionhkcc1xK5KWShDpoqG6M98723K2bhK57OzuCVEUOOaM": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ExchangeLambdaFunction"
+              },
+              "CodeSha256": "sO1PI4zQABmWE09IALOwVexD9S+bLNtPkb9r45XlDT8="
+            }
+          },
+          "ProfileLambdaVersionkuuV0kuwj9sUfgVp0g6Ona0Nc7YbzdPpuVklY0pZoYk": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ProfileLambdaFunction"
               },
-              "CodeSha256": "+umu3SLE+UhN7lhEt+/afEsSRK5zvPWtNCD/PiRE3p4="
+              "CodeSha256": "sO1PI4zQABmWE09IALOwVexD9S+bLNtPkb9r45XlDT8="
             }
           },
-          "MeLambdaVersionDK8suQW0cOKFxZgc8KByeBSXbqAT3SfLIdZatEZCPCA": {
+          "MeLambdaVersionJFvduyAWyuP4e0BxOn1RYYaWEKFbOzyebdk5ssKEs": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "MeLambdaFunction"
               },
-              "CodeSha256": "+umu3SLE+UhN7lhEt+/afEsSRK5zvPWtNCD/PiRE3p4="
+              "CodeSha256": "sO1PI4zQABmWE09IALOwVexD9S+bLNtPkb9r45XlDT8="
             }
           },
-          "LogoutLambdaVersioneF5hQ9HwtOhpf9qQq0PpOqahnkvEXmQFzj5NXCSdTo": {
+          "LogoutLambdaVersion01WZwy3EkLuk5ITPvg6EPwJHs719se7iiioE4": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "LogoutLambdaFunction"
               },
-              "CodeSha256": "+umu3SLE+UhN7lhEt+/afEsSRK5zvPWtNCD/PiRE3p4="
+              "CodeSha256": "sO1PI4zQABmWE09IALOwVexD9S+bLNtPkb9r45XlDT8="
             }
           },
-          "PostConfirmationLambdaVersion8ggW5RytundJVzjplqyCu5vaGOlfkbYD9VbzwD0c": {
+          "PostConfirmationLambdaVersionYqaMXucVW2Stgn8Yjt6LJOzMQiWeEaQle0TfDC8yPM": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "PostConfirmationLambdaFunction"
               },
-              "CodeSha256": "+umu3SLE+UhN7lhEt+/afEsSRK5zvPWtNCD/PiRE3p4="
+              "CodeSha256": "sO1PI4zQABmWE09IALOwVexD9S+bLNtPkb9r45XlDT8="
             }
           },
           "PostConfirmationCustomCognitoUserPool1": {
@@ -538,7 +592,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/hub-api/dev/1757413922051-2025-09-09T10:32:02.051Z/custom-resources.zip"
+                "S3Key": "serverless/hub-api/dev/1757450276264-2025-09-09T20:37:56.264Z/custom-resources.zip"
               },
               "FunctionName": "hub-api-dev-custom-resource-existing-cup",
               "Handler": "cognito-user-pool/handler.handler",
@@ -664,6 +718,78 @@
               }
             },
             "DependsOn": "HttpApiIntegrationCreateSession"
+          },
+          "ExchangeLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ExchangeLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationExchange": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ExchangeLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRoutePostAuthExchange": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /auth/exchange",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationExchange"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationExchange"
           },
           "ProfileLambdaPermissionHttpApi": {
             "Type": "AWS::Lambda::Permission",
@@ -894,16 +1020,25 @@
           "CreateSessionLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "CreateSessionLambdaVersion5I7B7hfvMoRbRw7BS9ucSCGJbBPfHdSK8k6JXuCI"
+              "Ref": "CreateSessionLambdaVersionRiIKwmHfxisQyoFseK0NLzgQR5gZ6BHZDKsklEOE"
             },
             "Export": {
               "Name": "sls-hub-api-dev-CreateSessionLambdaFunctionQualifiedArn"
             }
           },
+          "ExchangeLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ExchangeLambdaVersionhkcc1xK5KWShDpoqG6M98723K2bhK57OzuCVEUOOaM"
+            },
+            "Export": {
+              "Name": "sls-hub-api-dev-ExchangeLambdaFunctionQualifiedArn"
+            }
+          },
           "ProfileLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ProfileLambdaVersionSb8KJ8jJugQiwg2c6R376FzTGgp3scGUFZZSVARiE"
+              "Ref": "ProfileLambdaVersionkuuV0kuwj9sUfgVp0g6Ona0Nc7YbzdPpuVklY0pZoYk"
             },
             "Export": {
               "Name": "sls-hub-api-dev-ProfileLambdaFunctionQualifiedArn"
@@ -912,7 +1047,7 @@
           "MeLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "MeLambdaVersionDK8suQW0cOKFxZgc8KByeBSXbqAT3SfLIdZatEZCPCA"
+              "Ref": "MeLambdaVersionJFvduyAWyuP4e0BxOn1RYYaWEKFbOzyebdk5ssKEs"
             },
             "Export": {
               "Name": "sls-hub-api-dev-MeLambdaFunctionQualifiedArn"
@@ -921,7 +1056,7 @@
           "LogoutLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "LogoutLambdaVersioneF5hQ9HwtOhpf9qQq0PpOqahnkvEXmQFzj5NXCSdTo"
+              "Ref": "LogoutLambdaVersion01WZwy3EkLuk5ITPvg6EPwJHs719se7iiioE4"
             },
             "Export": {
               "Name": "sls-hub-api-dev-LogoutLambdaFunctionQualifiedArn"
@@ -930,7 +1065,7 @@
           "PostConfirmationLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "PostConfirmationLambdaVersion8ggW5RytundJVzjplqyCu5vaGOlfkbYD9VbzwD0c"
+              "Ref": "PostConfirmationLambdaVersionYqaMXucVW2Stgn8Yjt6LJOzMQiWeEaQle0TfDC8yPM"
             },
             "Export": {
               "Name": "sls-hub-api-dev-PostConfirmationLambdaFunctionQualifiedArn"
@@ -1058,6 +1193,7 @@
     },
     "custom": {
       "dotenv": {
+        "path": ".env",
         "exclude": [
           "AWS_ACCESS_KEY_ID",
           "AWS_SECRET_ACCESS_KEY",
@@ -1089,7 +1225,27 @@
         "timeout": 6,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "CreateSessionLambdaVersion5I7B7hfvMoRbRw7BS9ucSCGJbBPfHdSK8k6JXuCI"
+        "versionLogicalId": "CreateSessionLambdaVersionRiIKwmHfxisQyoFseK0NLzgQR5gZ6BHZDKsklEOE"
+      },
+      "exchange": {
+        "handler": "src/handlers/auth/exchange.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/auth/exchange",
+              "method": "post"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/auth/exchange"
+          }
+        ],
+        "name": "hub-api-dev-exchange",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs20.x",
+        "vpc": {},
+        "versionLogicalId": "ExchangeLambdaVersionhkcc1xK5KWShDpoqG6M98723K2bhK57OzuCVEUOOaM"
       },
       "profile": {
         "handler": "src/handlers/auth/profile.handler",
@@ -1109,7 +1265,7 @@
         "timeout": 6,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "ProfileLambdaVersionSb8KJ8jJugQiwg2c6R376FzTGgp3scGUFZZSVARiE"
+        "versionLogicalId": "ProfileLambdaVersionkuuV0kuwj9sUfgVp0g6Ona0Nc7YbzdPpuVklY0pZoYk"
       },
       "me": {
         "handler": "src/handlers/auth/me.handler",
@@ -1129,7 +1285,7 @@
         "timeout": 6,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "MeLambdaVersionDK8suQW0cOKFxZgc8KByeBSXbqAT3SfLIdZatEZCPCA"
+        "versionLogicalId": "MeLambdaVersionJFvduyAWyuP4e0BxOn1RYYaWEKFbOzyebdk5ssKEs"
       },
       "logout": {
         "handler": "src/handlers/auth/logout.handler",
@@ -1149,7 +1305,7 @@
         "timeout": 6,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "LogoutLambdaVersioneF5hQ9HwtOhpf9qQq0PpOqahnkvEXmQFzj5NXCSdTo"
+        "versionLogicalId": "LogoutLambdaVersion01WZwy3EkLuk5ITPvg6EPwJHs719se7iiioE4"
       },
       "postConfirmation": {
         "handler": "src/handlers/auth/postConfirmation.handler",
@@ -1168,7 +1324,7 @@
         "timeout": 6,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "PostConfirmationLambdaVersion8ggW5RytundJVzjplqyCu5vaGOlfkbYD9VbzwD0c"
+        "versionLogicalId": "PostConfirmationLambdaVersionYqaMXucVW2Stgn8Yjt6LJOzMQiWeEaQle0TfDC8yPM"
       }
     },
     "resources": {
@@ -1200,7 +1356,7 @@
     "isDashboardMonitoringPreconfigured": false
   },
   "package": {
-    "artifactDirectoryName": "serverless/hub-api/dev/1757413922051-2025-09-09T10:32:02.051Z",
+    "artifactDirectoryName": "serverless/hub-api/dev/1757450276264-2025-09-09T20:37:56.264Z",
     "artifact": "hub-api.zip"
   }
 }
