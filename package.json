@@ -24,6 +24,7 @@
     "dotenv": "^17.2.2",
     "jsonwebtoken": "^9.0.2",
     "jwk-to-pem": "^2.0.7",
+    "stripe": "^18.5.0",
     "uuid": "^12.0.0"
   },
   "devDependencies": {
@@ -31,8 +32,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/jwk-to-pem": "^2.0.3",
     "@types/node": "^24.3.1",
+    "@types/stripe": "^8.0.416",
     "esbuild": "^0.25.9",
-    "serverless-dotenv-plugin": "^6.0.0",
     "serverless-esbuild": "^1.55.1",
     "typescript": "^5.9.2"
   }

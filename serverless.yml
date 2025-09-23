@@ -1,5 +1,6 @@
 service: hub-api
 frameworkVersion: "3"
+useDotenv: true
 
 provider:
   name: aws
@@ -8,7 +9,10 @@ provider:
   environment:
     COGNITO_USER_POOL_ID: eu-central-1_2aEk8Onki
     COGNITO_APP_CLIENT_ID: heajnhd40jrihjlv70k3m6o8u
-    JWT_SECRET: ${env:JWT_SECRET} # sarà letto dal file .env
+    JWT_SECRET: ${env:JWT_SECRET}
+    PRODUCTS_TABLE: ${env:PRODUCTS_TABLE}
+    STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
+    FRONTEND_URLS: ${env:FRONTEND_URLS}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -22,6 +26,7 @@ provider:
         - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_sessions
         - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_codes
         - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_users
+        - arn:aws:dynamodb:eu-central-1:941377144465:table/Products
 
   httpApi:
     cors:
@@ -40,15 +45,6 @@ provider:
 
 plugins:
   - serverless-esbuild
-  - serverless-dotenv-plugin
-
-custom:
-  dotenv:
-    path: .env   # 👈 forza il caricamento del file .env nella root
-    exclude:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_REGION
 
 functions:
   createSession:
@@ -90,9 +86,42 @@ functions:
     handler: src/handlers/auth/postConfirmation.handler
     events:
       - cognitoUserPool:
-          pool: eu-central-1_2aEk8Onki
+          pool: ${env:COGNITO_USER_POOL_ID}
           trigger: PostConfirmation
           existing: true
 
-resources:
-  Resources: {}
+  addProduct:
+    handler: src/handlers/products/add.handler
+    events:
+      - httpApi:
+          path: /products
+          method: post
+
+  getProducts:
+    handler: src/handlers/products/get.handler
+    events:
+      - httpApi:
+          path: /products
+          method: get
+
+  updateProduct:
+    handler: src/handlers/products/update.handler
+    events:
+      - httpApi:
+          path: /products
+          method: put
+
+  deleteProduct:
+    handler: src/handlers/products/delete.handler
+    events:
+      - httpApi:
+          path: /products
+          method: delete
+
+
+  createCheckoutSession:
+    handler: src/handlers/payments/createCheckoutSession.handler
+    events:
+      - httpApi:
+          path: /payments/create-checkout-session
+          method: post
