@@ -1,8 +1,6 @@
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
 
 export async function handler(event: any) {
   try {
@@ -17,6 +15,22 @@ export async function handler(event: any) {
     // 3. se l’origin è nella lista, usalo; altrimenti fallback al primo
     const baseUrl = urls.includes(origin) ? origin : urls[0];
 
+    // 4. gestiamo coupon
+    let discounts: { coupon: string }[] = [];
+    if (body.coupon) {
+      try {
+        const coupon = await stripe.coupons.retrieve(body.coupon);
+        if (!coupon.valid) {
+          console.warn("⚠️ Coupon non valido:", body.coupon);
+        } else {
+          discounts = [{ coupon: body.coupon }];
+        }
+      } catch (err) {
+        console.warn("⚠️ Coupon non trovato o errore:", body.coupon, err);
+      }
+    }
+
+    // 5. crea sessione di checkout
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -31,6 +45,7 @@ export async function handler(event: any) {
         },
         quantity: item.qty,
       })),
+      discounts, // ✅ aggiunto se valido
       success_url: `${baseUrl}/success`,
       cancel_url: `${baseUrl}/cancel`,
     });
