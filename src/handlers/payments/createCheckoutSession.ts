@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
+// DynamoDB v3 client
 const ddbClient = new DynamoDBClient({});
 const db = DynamoDBDocumentClient.from(ddbClient);
 
@@ -17,6 +18,7 @@ export async function handler(event: any) {
     const items = body.items || [];
     const couponCode = body.coupon;
 
+    // 👉 Gestione coupon
     let discounts: Stripe.Checkout.SessionCreateParams.Discount[] = [];
     if (couponCode) {
       try {
@@ -25,13 +27,15 @@ export async function handler(event: any) {
           discounts = [{ coupon: coupon.id }];
         }
       } catch (err) {
-        console.warn("⚠️ Errore retrieving coupon:", couponCode, err);
+        console.warn("⚠️ Errore coupon:", couponCode, err);
       }
     }
 
+    // 👉 Crea sessione Stripe: raccoglie sempre email e crea customer
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
+      customer_creation: "always", // 👈 forza raccolta email
       line_items: items.map((item: any) => ({
         price_data: {
           currency: "eur",
@@ -46,12 +50,12 @@ export async function handler(event: any) {
       discounts,
       success_url: `${baseUrl}/success`,
       cancel_url: `${baseUrl}/cancel`,
-      // 👉 niente customer_email, Stripe chiede direttamente
       metadata: {
         userId: body.userId || "guest",
       },
     });
 
+    // 👉 Salva ordine su DynamoDB come "pending"
     await db.send(
       new PutCommand({
         TableName: process.env.ORDERS_TABLE!,
@@ -59,8 +63,6 @@ export async function handler(event: any) {
           orderId: session.id,
           userId: body.userId || "guest",
           items,
-          amountTotal: session.amount_total || 0,
-          currency: session.currency || "eur",
           coupon: couponCode || null,
           status: "pending",
           createdAt: new Date().toISOString(),
