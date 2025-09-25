@@ -7,13 +7,22 @@ provider:
   runtime: nodejs20.x
   region: eu-central-1
   environment:
+    # Cognito (hardcoded per non rischiare undefined)
     COGNITO_USER_POOL_ID: eu-central-1_2aEk8Onki
     COGNITO_APP_CLIENT_ID: heajnhd40jrihjlv70k3m6o8u
+
+    # JWT e app config
     JWT_SECRET: ${env:JWT_SECRET}
     PRODUCTS_TABLE: ${env:PRODUCTS_TABLE}
-    STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
+    ORDERS_TABLE: orders
     FRONTEND_URLS: ${env:FRONTEND_URLS}
+
+    # Stripe
+    STRIPE_SECRET_KEY: ${env:STRIPE_SECRET_KEY}
+    STRIPE_WEBHOOK_SECRET: ${env:STRIPE_WEBHOOK_SECRET}
+
   iamRoleStatements:
+    # Auth tables
     - Effect: Allow
       Action:
         - dynamodb:PutItem
@@ -26,7 +35,30 @@ provider:
         - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_sessions
         - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_codes
         - arn:aws:dynamodb:eu-central-1:941377144465:table/hub_users
+
+    # Products
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
+        - dynamodb:UpdateItem
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource:
         - arn:aws:dynamodb:eu-central-1:941377144465:table/Products
+
+    # Orders
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
+        - dynamodb:UpdateItem
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource:
+        - arn:aws:dynamodb:eu-central-1:941377144465:table/orders
 
   httpApi:
     cors:
@@ -47,6 +79,7 @@ plugins:
   - serverless-esbuild
 
 functions:
+  # AUTH
   createSession:
     handler: src/handlers/auth/session.handler
     events:
@@ -90,6 +123,7 @@ functions:
           trigger: PostConfirmation
           existing: true
 
+  # PRODUCTS
   addProduct:
     handler: src/handlers/products/add.handler
     events:
@@ -118,10 +152,17 @@ functions:
           path: /products
           method: delete
 
-
+  # PAYMENTS
   createCheckoutSession:
     handler: src/handlers/payments/createCheckoutSession.handler
     events:
       - httpApi:
           path: /payments/create-checkout-session
+          method: post
+
+  webhookStripe:
+    handler: src/handlers/payments/webhook-stripe.handler
+    events:
+      - httpApi:
+          path: /payments/webhook
           method: post

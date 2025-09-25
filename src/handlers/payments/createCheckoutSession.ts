@@ -1,40 +1,38 @@
 import Stripe from "stripe";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
+const ddbClient = new DynamoDBClient({});
+const db = DynamoDBDocumentClient.from(ddbClient);
 
 export async function handler(event: any) {
   try {
     const body = JSON.parse(event.body || "{}");
-
-    // 1. lista dal .env
     const urls = (process.env.FRONTEND_URLS || "").split(",");
-
-    // 2. prendi l'origin della request (se httpApi lo include)
     const origin = event.headers?.origin;
-
-    // 3. se l’origin è nella lista, usalo; altrimenti fallback al primo
     const baseUrl = urls.includes(origin) ? origin : urls[0];
 
-    // 4. gestiamo coupon
-    let discounts: { coupon: string }[] = [];
-    if (body.coupon) {
+    const items = body.items || [];
+    const couponCode = body.coupon;
+
+    let discounts: Stripe.Checkout.SessionCreateParams.Discount[] = [];
+    if (couponCode) {
       try {
-        const coupon = await stripe.coupons.retrieve(body.coupon);
-        if (!coupon.valid) {
-          console.warn("⚠️ Coupon non valido:", body.coupon);
-        } else {
-          discounts = [{ coupon: body.coupon }];
+        const coupon = await stripe.coupons.retrieve(couponCode);
+        if ((coupon as any).valid) {
+          discounts = [{ coupon: coupon.id }];
         }
       } catch (err) {
-        console.warn("⚠️ Coupon non trovato o errore:", body.coupon, err);
+        console.warn("⚠️ Errore retrieving coupon:", couponCode, err);
       }
     }
 
-    // 5. crea sessione di checkout
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      line_items: body.items.map((item: any) => ({
+      line_items: items.map((item: any) => ({
         price_data: {
           currency: "eur",
           product_data: {
@@ -45,20 +43,38 @@ export async function handler(event: any) {
         },
         quantity: item.qty,
       })),
-      discounts, // ✅ aggiunto se valido
+      discounts,
       success_url: `${baseUrl}/success`,
       cancel_url: `${baseUrl}/cancel`,
+      // 👉 niente customer_email, Stripe chiede direttamente
+      metadata: {
+        userId: body.userId || "guest",
+      },
     });
+
+    await db.send(
+      new PutCommand({
+        TableName: process.env.ORDERS_TABLE!,
+        Item: {
+          orderId: session.id,
+          userId: body.userId || "guest",
+          items,
+          amountTotal: session.amount_total || 0,
+          currency: session.currency || "eur",
+          coupon: couponCode || null,
+          status: "pending",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      })
+    );
 
     return {
       statusCode: 200,
       body: JSON.stringify({ url: session.url }),
     };
   } catch (err: any) {
-    console.error("❌ Stripe error:", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
-    };
+    console.error("❌ Stripe error in createCheckoutSession:", err);
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 }
