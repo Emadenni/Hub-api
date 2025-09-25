@@ -31,6 +31,13 @@ export async function handler(event: any) {
       }
     }
 
+    // 👉 Calcola subtotale
+    const subtotalCents = items.reduce(
+      (acc: number, item: any) => acc + Math.round(item.price * 100) * item.qty,
+      0
+    );
+    const subtotalEur = subtotalCents / 100;
+
     // 👉 Crea sessione Stripe: raccoglie sempre email e crea customer
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -65,6 +72,8 @@ export async function handler(event: any) {
           items,
           coupon: couponCode || null,
           status: "pending",
+          amountCents: subtotalCents,
+          amountEur: subtotalEur,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
