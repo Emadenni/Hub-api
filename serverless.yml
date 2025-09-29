@@ -7,7 +7,7 @@ provider:
   runtime: nodejs20.x
   region: eu-central-1
   environment:
-    # Cognito (hardcoded per non rischiare undefined)
+    # Cognito
     COGNITO_USER_POOL_ID: eu-central-1_2aEk8Onki
     COGNITO_APP_CLIENT_ID: heajnhd40jrihjlv70k3m6o8u
 
@@ -59,6 +59,7 @@ provider:
         - dynamodb:Scan
       Resource:
         - arn:aws:dynamodb:eu-central-1:941377144465:table/orders
+        - arn:aws:dynamodb:eu-central-1:941377144465:table/orders/index/userId-index
 
   httpApi:
     cors:
@@ -166,3 +167,11 @@ functions:
       - httpApi:
           path: /payments/webhook
           method: post
+
+  # ORDERS
+  getUserOrders:
+    handler: src/handlers/orders/getUserOrders.handler
+    events:
+      - httpApi:
+          path: /orders
+          method: get

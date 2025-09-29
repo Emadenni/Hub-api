@@ -3,8 +3,6 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
-// DynamoDB v3 client
 const ddbClient = new DynamoDBClient({});
 const db = DynamoDBDocumentClient.from(ddbClient);
 
@@ -17,6 +15,19 @@ export async function handler(event: any) {
 
     const items = body.items || [];
     const couponCode = body.coupon;
+    const userId = body.userId && body.userId !== "guest" ? body.userId : "guest";
+
+    // 🔧 Fix: usa nullish coalescing, non `||`
+    const email: string = body.email ?? "";
+    const name: string = body.name ?? "";
+
+    console.log("🛒 Checkout request:", {
+      userId,
+      email,
+      name,
+      itemsCount: items.length,
+      couponCode,
+    });
 
     // 👉 Gestione coupon
     let discounts: Stripe.Checkout.SessionCreateParams.Discount[] = [];
@@ -38,11 +49,11 @@ export async function handler(event: any) {
     );
     const subtotalEur = subtotalCents / 100;
 
-    // 👉 Crea sessione Stripe: raccoglie sempre email e crea customer
+    // 👉 Crea sessione Stripe
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      customer_creation: "always", // 👈 forza raccolta email
+      customer_creation: "always",
       line_items: items.map((item: any) => ({
         price_data: {
           currency: "eur",
@@ -57,20 +68,20 @@ export async function handler(event: any) {
       discounts,
       success_url: `${baseUrl}/success`,
       cancel_url: `${baseUrl}/cancel`,
-      metadata: {
-        userId: body.userId || "guest",
-      },
+      metadata: { userId, email, name },
     });
 
-    // 👉 Salva ordine su DynamoDB come "pending"
+    // 👉 Salva ordine pending
     await db.send(
       new PutCommand({
         TableName: process.env.ORDERS_TABLE!,
         Item: {
           orderId: session.id,
-          userId: body.userId || "guest",
+          userId,
+          email,
+          name,
           items,
-          coupon: couponCode || null,
+          coupon: couponCode ?? null,
           status: "pending",
           amountCents: subtotalCents,
           amountEur: subtotalEur,
@@ -86,6 +97,9 @@ export async function handler(event: any) {
     };
   } catch (err: any) {
     console.error("❌ Stripe error in createCheckoutSession:", err);
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
   }
 }
