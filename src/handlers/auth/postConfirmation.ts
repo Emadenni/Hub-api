@@ -3,25 +3,27 @@ import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 
-export const handler: Handler<PostConfirmationConfirmSignUpTriggerEvent, PostConfirmationConfirmSignUpTriggerEvent> = async (event) => {
+export const handler: Handler<
+  PostConfirmationConfirmSignUpTriggerEvent,
+  PostConfirmationConfirmSignUpTriggerEvent
+> = async (event) => {
   try {
     const attrs = event.request.userAttributes;
     const userId = attrs.sub;
     const email = attrs.email ?? "";
-    const name  = attrs.name  ?? "";
+    const name = attrs.name ?? "";
 
     await client.send(
       new PutItemCommand({
         TableName: "hub_users",
         Item: {
-          userId:    { S: userId },
-          email:     { S: email },
-          name:      { S: name },
+          userId: { S: userId },
+          email: { S: email },
+          name: { S: name },
           createdAt: { S: new Date().toISOString() },
-          points:    { N: "0" },
-          purchases: { L: [] }
+          points: { N: "0" },
         },
-        ConditionExpression: "attribute_not_exists(userId)"
+        ConditionExpression: "attribute_not_exists(userId)",
       })
     );
 

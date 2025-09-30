@@ -1,9 +1,12 @@
 import Stripe from "stripe";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  UpdateCommand,
+  GetCommand,
+} from "@aws-sdk/lib-dynamodb";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 const ddbClient = new DynamoDBClient({});
 const db = DynamoDBDocumentClient.from(ddbClient);
 
@@ -20,8 +23,7 @@ export async function handler(event: any) {
     if (stripeEvent.type === "checkout.session.completed") {
       const session = stripeEvent.data.object as Stripe.Checkout.Session;
 
-      console.log("✅ Checkout completed:", session.id);
-
+      // 👉 Calcolo totale
       let amountCents = session.amount_total ?? 0;
       let amountTotal = session.amount_total ?? null;
 
@@ -35,7 +37,7 @@ export async function handler(event: any) {
 
       const amountEur = amountCents / 100;
 
-      // 👉 Aggiorna ordine
+      // 👉 Aggiorna ordine a "paid"
       await db.send(
         new UpdateCommand({
           TableName: process.env.ORDERS_TABLE!,
@@ -69,24 +71,19 @@ export async function handler(event: any) {
         })
       );
 
-      // 👉 Recupera userId da metadata
-      const userId = session.metadata?.userId || "guest";
+      // 👉 Gestione stock prodotti
+      const orderItems = session.metadata?.items
+        ? JSON.parse(session.metadata.items)
+        : [];
 
-      if (userId !== "guest") {
-        console.log(`🔗 Associo ordine ${session.id} a utente ${userId}`);
+      console.log("📦 Items ricevuti dal metadata:", orderItems);
 
-        // Aggiorna tabella hub_users aggiungendo orderId a purchases
-        await db.send(
-          new UpdateCommand({
-            TableName: process.env.USERS_TABLE!, // es: "hub_users"
-            Key: { userId },
-            UpdateExpression: "SET purchases = list_append(if_not_exists(purchases, :empty), :o)",
-            ExpressionAttributeValues: {
-              ":o": [session.id],
-              ":empty": [],
-            },
-          })
-        );
+      for (const item of orderItems) {
+        const pid = item.productId || item.id;
+        if (pid) {
+          console.log(`🔽 Scala stock prodotto: ${pid} (qty: ${item.qty})`);
+          await decreaseStock(pid, item.qty || 1);
+        }
       }
     }
 
@@ -95,10 +92,53 @@ export async function handler(event: any) {
       body: JSON.stringify({ received: true }),
     };
   } catch (err: any) {
-    console.error("❌ Webhook handler error:", err);
+    console.error("❌ Webhook Error:", err);
     return {
       statusCode: 400,
       body: `Webhook Error: ${err.message}`,
     };
+  }
+}
+
+/**
+ * Scala stock nel DB per i prodotti non infiniti.
+ * - Se stock >= 9999 → prodotto "infinito", non scala.
+ * - Se stock arriva a 0 o meno → resetta a 10 (ciclo).
+ */
+async function decreaseStock(productId: string, qty: number) {
+  const res = await db.send(
+    new GetCommand({
+      TableName: process.env.PRODUCTS_TABLE!,
+      Key: { productId },
+    })
+  );
+
+  if (!res.Item) {
+    console.log(`⚠️ Nessun prodotto trovato con ID ${productId}`);
+    return;
+  }
+
+  let stock = res.Item.stock ?? 0;
+
+  if (stock < 9999) {
+    let newStock = stock - qty;
+    if (newStock <= 0) {
+      newStock = 10; // reset ciclico
+    }
+
+    await db.send(
+      new UpdateCommand({
+        TableName: process.env.PRODUCTS_TABLE!,
+        Key: { productId },
+        UpdateExpression: "SET stock = :s",
+        ExpressionAttributeValues: { ":s": newStock },
+      })
+    );
+
+    console.log(
+      `✅ Stock aggiornato per ${productId}: ${stock} → ${newStock}`
+    );
+  } else {
+    console.log(`ℹ️ Prodotto ${productId} ha stock infinito, non scalato.`);
   }
 }

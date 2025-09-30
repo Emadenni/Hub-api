@@ -17,17 +17,10 @@ export async function handler(event: any) {
     const couponCode = body.coupon;
     const userId = body.userId && body.userId !== "guest" ? body.userId : "guest";
 
-    // 🔧 Fix: usa nullish coalescing, non `||`
     const email: string = body.email ?? "";
     const name: string = body.name ?? "";
 
-    console.log("🛒 Checkout request:", {
-      userId,
-      email,
-      name,
-      itemsCount: items.length,
-      couponCode,
-    });
+    console.log("📦 Items ricevuti dal frontend:", JSON.stringify(items, null, 2));
 
     // 👉 Gestione coupon
     let discounts: Stripe.Checkout.SessionCreateParams.Discount[] = [];
@@ -37,17 +30,18 @@ export async function handler(event: any) {
         if ((coupon as any).valid) {
           discounts = [{ coupon: coupon.id }];
         }
-      } catch (err) {
-        console.warn("⚠️ Errore coupon:", couponCode, err);
+      } catch {
+        console.warn("⚠️ Coupon non valido:", couponCode);
       }
     }
 
-    // 👉 Calcola subtotale
-    const subtotalCents = items.reduce(
-      (acc: number, item: any) => acc + Math.round(item.price * 100) * item.qty,
-      0
-    );
-    const subtotalEur = subtotalCents / 100;
+    // 👉 Costruisci payload pulito per metadata
+    const metaItems = items.map((i: any) => ({
+      productId: i.productId, // 👈 ID che useremo nel webhook
+      qty: i.qty,
+    }));
+
+    console.log("📝 Metadata.items da salvare in Stripe:", JSON.stringify(metaItems, null, 2));
 
     // 👉 Crea sessione Stripe
     const session = await stripe.checkout.sessions.create({
@@ -68,8 +62,15 @@ export async function handler(event: any) {
       discounts,
       success_url: `${baseUrl}/success`,
       cancel_url: `${baseUrl}/cancel`,
-      metadata: { userId, email, name },
+      metadata: {
+        userId,
+        email,
+        name,
+        items: JSON.stringify(metaItems),
+      },
     });
+
+    console.log("✅ Sessione Stripe creata:", session.id);
 
     // 👉 Salva ordine pending
     await db.send(
@@ -83,20 +84,24 @@ export async function handler(event: any) {
           items,
           coupon: couponCode ?? null,
           status: "pending",
-          amountCents: subtotalCents,
-          amountEur: subtotalEur,
+          amountCents: items.reduce(
+            (acc: number, item: any) => acc + Math.round(item.price * 100) * item.qty,
+            0
+          ),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
       })
     );
 
+    console.log("💾 Ordine salvato in DynamoDB come pending:", session.id);
+
     return {
       statusCode: 200,
       body: JSON.stringify({ url: session.url }),
     };
   } catch (err: any) {
-    console.error("❌ Stripe error in createCheckoutSession:", err);
+    console.error("❌ Errore createCheckoutSession:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message }),

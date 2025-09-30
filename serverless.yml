@@ -14,7 +14,7 @@ provider:
     # JWT e app config
     JWT_SECRET: ${env:JWT_SECRET}
     PRODUCTS_TABLE: ${env:PRODUCTS_TABLE}
-    ORDERS_TABLE: orders
+    ORDERS_TABLE: ${env:ORDERS_TABLE}
     FRONTEND_URLS: ${env:FRONTEND_URLS}
 
     # Stripe
