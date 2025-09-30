@@ -37,7 +37,7 @@ export async function handler(event: any) {
 
       const amountEur = amountCents / 100;
 
-      // 👉 Aggiorna ordine a "paid"
+      // 👉 Aggiorna ordine a "paid" (solo se esiste già)
       await db.send(
         new UpdateCommand({
           TableName: process.env.ORDERS_TABLE!,
@@ -68,6 +68,7 @@ export async function handler(event: any) {
             ":amt_e": amountEur,
             ":u": new Date().toISOString(),
           },
+          ConditionExpression: "attribute_exists(orderId)", // 👈 non crea doppioni
         })
       );
 
@@ -76,12 +77,9 @@ export async function handler(event: any) {
         ? JSON.parse(session.metadata.items)
         : [];
 
-      console.log("📦 Items ricevuti dal metadata:", orderItems);
-
       for (const item of orderItems) {
         const pid = item.productId || item.id;
         if (pid) {
-          console.log(`🔽 Scala stock prodotto: ${pid} (qty: ${item.qty})`);
           await decreaseStock(pid, item.qty || 1);
         }
       }
@@ -102,8 +100,6 @@ export async function handler(event: any) {
 
 /**
  * Scala stock nel DB per i prodotti non infiniti.
- * - Se stock >= 9999 → prodotto "infinito", non scala.
- * - Se stock arriva a 0 o meno → resetta a 10 (ciclo).
  */
 async function decreaseStock(productId: string, qty: number) {
   const res = await db.send(
@@ -113,10 +109,7 @@ async function decreaseStock(productId: string, qty: number) {
     })
   );
 
-  if (!res.Item) {
-    console.log(`⚠️ Nessun prodotto trovato con ID ${productId}`);
-    return;
-  }
+  if (!res.Item) return;
 
   let stock = res.Item.stock ?? 0;
 
@@ -134,11 +127,5 @@ async function decreaseStock(productId: string, qty: number) {
         ExpressionAttributeValues: { ":s": newStock },
       })
     );
-
-    console.log(
-      `✅ Stock aggiornato per ${productId}: ${stock} → ${newStock}`
-    );
-  } else {
-    console.log(`ℹ️ Prodotto ${productId} ha stock infinito, non scalato.`);
   }
 }
