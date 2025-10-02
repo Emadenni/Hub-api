@@ -73,6 +73,8 @@ provider:
       allowedMethods:
         - GET
         - POST
+        - PUT
+        - DELETE
         - OPTIONS
       allowCredentials: true
 
@@ -139,18 +141,25 @@ functions:
           path: /products
           method: get
 
+  getProductById:
+    handler: src/handlers/products/getById.handler
+    events:
+      - httpApi:
+          path: /products/{id}
+          method: get
+
   updateProduct:
     handler: src/handlers/products/update.handler
     events:
       - httpApi:
-          path: /products
+          path: /products/{id}
           method: put
 
   deleteProduct:
     handler: src/handlers/products/delete.handler
     events:
       - httpApi:
-          path: /products
+          path: /products/{id}
           method: delete
 
   # PAYMENTS

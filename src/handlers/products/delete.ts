@@ -6,11 +6,9 @@ const tableName = process.env.PRODUCTS_TABLE!;
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
-    if (!event.body) return { statusCode: 400, body: "Missing body" };
-    const { productId } = JSON.parse(event.body);
-
+    const productId = event.pathParameters?.id;
     if (!productId) {
-      return { statusCode: 400, body: "Missing productId" };
+      return { statusCode: 400, body: "Missing productId in path" };
     }
 
     const cmd = new DeleteItemCommand({

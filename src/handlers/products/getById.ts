@@ -1,15 +1,28 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
 const client = new DynamoDBClient({});
 const tableName = process.env.PRODUCTS_TABLE!;
 
-export const handler: APIGatewayProxyHandlerV2 = async () => {
+export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
-    const cmd = new ScanCommand({ TableName: tableName });
-    const res = await client.send(cmd);
+    const productId = event.pathParameters?.id;
+    if (!productId) {
+      return { statusCode: 400, body: "Missing productId in path" };
+    }
 
-    const products = (res.Items || []).map((item) => ({
+    const cmd = new GetItemCommand({
+      TableName: tableName,
+      Key: { productId: { S: productId } },
+    });
+
+    const res = await client.send(cmd);
+    if (!res.Item) {
+      return { statusCode: 404, body: "Product not found" };
+    }
+
+    const item = res.Item;
+    const product = {
       productId: item.productId.S,
       title: {
         en: item.title?.M?.en?.S,
@@ -26,21 +39,24 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
           }
         : null,
       features: item.features?.L
-        ? item.features.L.map((f: any) => f.S)
+        ? item.features.L.map((f: any) => ({
+            en: f.M?.en?.S,
+            it: f.M?.it?.S,
+          }))
         : [],
       price: Number(item.price?.N),
       image: item.image?.S,
       tags: item.tags?.SS || [],
       stock: Number(item.stock?.N || 0),
       createdAt: item.createdAt?.S,
-    }));
+    };
 
     return {
       statusCode: 200,
-      body: JSON.stringify(products),
+      body: JSON.stringify(product),
     };
   } catch (err) {
-    console.error("Error fetching products", err);
-    return { statusCode: 500, body: "Error fetching products" };
+    console.error("Error fetching product", err);
+    return { statusCode: 500, body: "Error fetching product" };
   }
 };
