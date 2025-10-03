@@ -15,6 +15,7 @@ provider:
     JWT_SECRET: ${env:JWT_SECRET}
     PRODUCTS_TABLE: ${env:PRODUCTS_TABLE}
     ORDERS_TABLE: ${env:ORDERS_TABLE}
+    PARTNERS_REQUESTS_TABLE: ${env:PARTNERS_REQUESTS_TABLE}
     FRONTEND_URLS: ${env:FRONTEND_URLS}
 
     # Stripe
@@ -60,6 +61,18 @@ provider:
       Resource:
         - arn:aws:dynamodb:eu-central-1:941377144465:table/orders
         - arn:aws:dynamodb:eu-central-1:941377144465:table/orders/index/userId-index
+
+    # Partners Requests
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
+        - dynamodb:UpdateItem
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource:
+        - arn:aws:dynamodb:eu-central-1:941377144465:table/partners_requests
 
   httpApi:
     cors:
@@ -184,3 +197,11 @@ functions:
       - httpApi:
           path: /orders
           method: get
+
+  # PARTNERS
+  savePartnerRequest:
+    handler: src/handlers/partners/saveRequest.handler
+    events:
+      - httpApi:
+          path: /partners/request
+          method: post
