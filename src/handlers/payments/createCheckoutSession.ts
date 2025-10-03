@@ -22,16 +22,24 @@ export async function handler(event: any) {
 
     console.log("📦 Items ricevuti dal frontend:", JSON.stringify(items, null, 2));
 
-    // 👉 Gestione coupon
+    // 👉 Gestione promotion code invece che coupon
     let discounts: Stripe.Checkout.SessionCreateParams.Discount[] = [];
     if (couponCode) {
       try {
-        const coupon = await stripe.coupons.retrieve(couponCode);
-        if ((coupon as any).valid) {
-          discounts = [{ coupon: coupon.id }];
+        const promo = await stripe.promotionCodes.list({
+          code: couponCode,
+          active: true,
+          limit: 1,
+        });
+
+        if (promo.data.length > 0) {
+          console.log("✅ Promotion code trovato:", promo.data[0].code, promo.data[0].id);
+          discounts = [{ promotion_code: promo.data[0].id }];
+        } else {
+          console.warn("⚠️ Promotion code non valido:", couponCode);
         }
-      } catch {
-        console.warn("⚠️ Coupon non valido:", couponCode);
+      } catch (err) {
+        console.warn("⚠️ Errore nel recupero promotion code:", couponCode, err);
       }
     }
 

@@ -74,6 +74,13 @@ provider:
       Resource:
         - arn:aws:dynamodb:eu-central-1:941377144465:table/partners_requests
 
+    # Allow requestCoupon to invoke createCoupon Lambda
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource:
+        - arn:aws:lambda:eu-central-1:941377144465:function:hub-api-dev-createCoupon
+
   httpApi:
     cors:
       allowedOrigins:
@@ -203,5 +210,41 @@ functions:
     handler: src/handlers/partners/saveRequest.handler
     events:
       - httpApi:
-          path: /partners/request
+          path: /partners/requests
+          method: post
+
+  deletePartnerRequest:
+    handler: src/handlers/partners/deleteRequest.handler
+    events:
+      - httpApi:
+          path: /partners/requests/{id}
+          method: delete
+
+  markPartnerRequestHandled:
+    handler: src/handlers/partners/markRequestHandled.handler
+    events:
+      - httpApi:
+          path: /partners/requests/{id}/handled
+          method: put
+
+  listPartnerRequests:
+    handler: src/handlers/partners/listRequests.handler
+    events:
+      - httpApi:
+          path: /partners/requests
+          method: get
+
+  # COUPONS
+  requestCoupon:
+    handler: src/handlers/coupons/requestCoupon.handler
+    events:
+      - httpApi:
+          path: /coupons/request
+          method: post
+
+  createCoupon:
+    handler: src/handlers/coupons/createCoupon.handler
+    events:
+      - httpApi:
+          path: /coupons/create
           method: post
