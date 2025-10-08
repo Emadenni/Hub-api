@@ -16,24 +16,35 @@ export const handler = async (event: any) => {
 
     console.log("➡️ Creating coupon & promotion code:", { code, amount, currency });
 
-    // 1) Crea coupon con un nome leggibile
+    // 1) Crea coupon
     const coupon = await stripe.coupons.create({
-      amount_off: amount * 100, // Stripe vuole centesimi
+      amount_off: amount * 100,
       currency,
       duration: "once",
-      name: `Promo ${code}`, // 👈 così non vedi più "Not provided"
+      name: `Promo ${code}`,
     });
 
-    // 2) Crea promotion code collegato al coupon
-    const promoCode = await stripe.promotionCodes.create({
-      coupon: coupon.id,
-      code,               // 👈 questo è il codice che l'utente digita
-      max_redemptions: 1, // utilizzabile una sola volta
-    });
+    // 2) Prova a creare promotion code
+    let promoCode;
+    try {
+      promoCode = await stripe.promotionCodes.create({
+        coupon: coupon.id,
+        code,
+        max_redemptions: 1,
+      });
+    } catch (err: any) {
+      if (err.type === "StripeInvalidRequestError" && err.code === "promotion_code_already_exists") {
+        console.warn("⚠️ Promotion code già esistente:", code);
+        return {
+          statusCode: 409, // Conflict
+          body: JSON.stringify({ error: `Codice '${code}' già esistente` }),
+        };
+      }
+      throw err; // altri errori li rilancio
+    }
 
     console.log("✅ Created coupon:", coupon.id, "and promoCode:", promoCode.code);
 
-    // Risposta pulita
     return {
       statusCode: 200,
       body: JSON.stringify({
