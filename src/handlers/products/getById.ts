@@ -22,6 +22,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const item = res.Item;
+
     const product = {
       productId: item.productId.S,
       title: {
@@ -48,7 +49,10 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       image: item.image?.S,
       tags: item.tags?.SS || [],
       stock: Number(item.stock?.N || 0),
+      weightKg: item.weightKg ? Number(item.weightKg.N) : null,
+      volumeCm3: item.volumeCm3 ? Number(item.volumeCm3.N) : null,
       createdAt: item.createdAt?.S,
+      updatedAt: item.updatedAt?.S || null,
     };
 
     return {

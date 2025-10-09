@@ -15,7 +15,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       return { statusCode: 400, body: "Missing body" };
     }
 
-    const { title, desc, price, image, tags, stock, longDesc, features } = JSON.parse(event.body);
+    const {
+      title,
+      desc,
+      price,
+      image,
+      tags,
+      stock,
+      longDesc,
+      features,
+      weightKg,
+      volumeCm3
+    } = JSON.parse(event.body);
 
     const updates: string[] = [];
     const expAttrNames: Record<string, string> = {};
@@ -69,13 +80,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       };
     }
 
-    // ✅ FIX FEATURES
     if (features) {
       updates.push("#f = :features");
       expAttrNames["#f"] = "features";
       expAttrValues[":features"] = {
         L: features
-          .filter((f: any) => f && (f.en || f.it)) // togli null o vuoti
+          .filter((f: any) => f && (f.en || f.it))
           .map((f: { en: string; it: string }) => ({
             M: {
               en: { S: f.en },
@@ -83,6 +93,19 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             },
           })),
       };
+    }
+
+    // ✅ NUOVI CAMPI
+    if (weightKg !== undefined) {
+      updates.push("#w = :weight");
+      expAttrNames["#w"] = "weightKg";
+      expAttrValues[":weight"] = { N: weightKg.toString() };
+    }
+
+    if (volumeCm3 !== undefined) {
+      updates.push("#v = :volume");
+      expAttrNames["#v"] = "volumeCm3";
+      expAttrValues[":volume"] = { N: volumeCm3.toString() };
     }
 
     if (updates.length === 0) {
